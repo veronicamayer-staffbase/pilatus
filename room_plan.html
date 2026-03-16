@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiver Lageplan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            color: #00d9ff;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .breadcrumb-item:hover {
+            color: #00ff88;
+        }
+
+        .breadcrumb-separator {
+            color: #555;
+        }
+
+        .breadcrumb-current {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Campus View */
+        .campus-map {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .building {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .building::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(0,217,255,0.1), rgba(0,255,136,0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .building:hover {
+            transform: translateY(-5px);
+            border-color: #00d9ff;
+            box-shadow: 0 10px 40px rgba(0,217,255,0.3);
+        }
+
+        .building:hover::before {
+            opacity: 1;
+        }
+
+        .building.active {
+            border-color: #00ff88;
+            background: linear-gradient(145deg, #1a4a3a, #1e3a2a);
+        }
+
+        .building.inactive {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .building.inactive:hover {
+            transform: none;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .building-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .building-name {
+            font-weight: 600;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            font-size: 0.9rem;
+        }
+
+        .building-status {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .building.active .building-status {
+            color: #00ff88;
+        }
+
+        /* Building View */
+        .building-view {
+            display: none;
+        }
+
+        .building-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-radius: 15px;
+            border: 1px solid rgba(0,217,255,0.3);
+        }
+
+        .building-header-icon {
+            font-size: 4rem;
+        }
+
+        .building-header-info h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .building-header-info p {
+            color: #888;
+        }
+
+        .floor-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .floor-tab {
+            padding: 12px 25px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .floor-tab:hover {
+            background: rgba(0,217,255,0.2);
+            border-color: #00d9ff;
+        }
+
+        .floor-tab.active {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #000;
+            border-color: transparent;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .room-card {
+            padding: 20px;
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .room-card:hover {
+            transform: translateY(-3px);
+            border-color: #00d9ff;
+            box-shadow: 0 5px 20px rgba(0,217,255,0.2);
+        }
+
+        .room-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .room-icon {
+            font-size: 1.5rem;
+        }
+
+        .room-number {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .room-type {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .room-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .room-status.available {
+            background: rgba(0,255,136,0.2);
+            color: #00ff88;
+        }
+
+        .room-status.occupied {
+            background: rgba(255,100,100,0.2);
+            color: #ff6464;
+        }
+
+        .room-status.meeting {
+            background: rgba(255,200,0,0.2);
+            color: #ffc800;
+        }
+
+        /* Room Detail View */
+        .room-detail {
+            display: none;
+        }
+
+        .room-detail-card {
+            background: linear-gradient(145deg, #2a2a4a, #1e1e3a);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(0,217,255,0.3);
+        }
+
+        .room-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .room-detail-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .room-detail-title h2 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .room-detail-title p {
+            color: #888;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-item {
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .detail-item-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detail-item-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .detail-item-value.highlight {
+            color: #00ff88;
+        }
+
+        .occupants-list {
+            margin-top: 30px;
+        }
+
+        .occupants-list h3 {
+            margin-bottom: 15px;
+            color: #00d9ff;
+        }
+
+        .occupant {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .occupant-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .occupant-info h4 {
+            margin-bottom: 3px;
+        }
+
+        .occupant-info p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .equipment-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .equipment-tag {
+            padding: 8px 15px;
+            background: rgba(0,217,255,0.1);
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 25px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background: rgba(0,217,255,0.2);
+            border-color: #00d9ff;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .campus-map {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .building-icon {
+                font-size: 2rem;
+            }
+            
+            .building-name {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Campus Lageplan</h1>
+        <p class="subtitle">Klicken Sie auf ein Gebäude, um die Räume anzuzeigen</p>
+
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb">
+            <span class="breadcrumb-item" onclick="showCampus()">🏠 Campus</span>
+            <span class="breadcrumb-separator hidden" id="sep1">›</span>
+            <span class="breadcrumb-item hidden" id="bread-building" onclick="showBuilding()"></span>
+            <span class="breadcrumb-separator hidden" id="sep2">›</span>
+            <span class="breadcrumb-current hidden" id="bread-room"></span>
+        </div>
+
+        <!-- Campus View -->
+        <div class="campus-map" id="campus-view">
+            <div class="building active" onclick="showBuilding()">
+                <span class="building-icon">🏢</span>
+                <span class="building-name">Hauptgebäude</span>
+                <span class="building-status">● Aktiv</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🏭</span>
+                <span class="building-name">Produktion A</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🏭</span>
+                <span class="building-name">Produktion B</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🔬</span>
+                <span class="building-name">Labor</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">📦</span>
+                <span class="building-name">Lager Nord</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">📦</span>
+                <span class="building-name">Lager Süd</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🍽️</span>
+                <span class="building-name">Kantine</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🅿️</span>
+                <span class="building-name">Parkhaus</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🏋️</span>
+                <span class="building-name">Fitnesscenter</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🏥</span>
+                <span class="building-name">Sanitätsbereich</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🔧</span>
+                <span class="building-name">Technik</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">📚</span>
+                <span class="building-name">Schulungszentrum</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+            <div class="building inactive">
+                <span class="building-icon">🌳</span>
+                <span class="building-name">Pavillon</span>
+                <span class="building-status">○ Demo</span>
+            </div>
+        </div>
+
+        <!-- Building View -->
+        <div class="building-view" id="building-view">
+            <button class="back-button" onclick="showCampus()">
+                ← Zurück zum Campus
+            </button>
+
+            <div class="building-header">
+                <span class="building-header-icon">🏢</span>
+                <div class="building-header-info">
+                    <h2>Hauptgebäude</h2>
+                    <p>5 Etagen • 24 Räume • Verwaltung & Büros</p>
+                </div>
+            </div>
+
+            <div class="floor-tabs">
+                <div class="floor-tab active" onclick="selectFloor(this, 0)">Erdgeschoss</div>
+                <div class="floor-tab" onclick="selectFloor(this, 1)">1. OG</div>
+                <div class="floor-tab" onclick="selectFloor(this, 2)">2. OG</div>
+                <div class="floor-tab" onclick="selectFloor(this, 3)">3. OG</div>
+                <div class="floor-tab" onclick="selectFloor(this, 4)">4. OG</div>
+            </div>
+
+            <div class="rooms-grid" id="rooms-container">
+                <!-- Rooms will be loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Room Detail View -->
+        <div class="room-detail" id="room-detail">
+            <button class="back-button" onclick="showBuilding()">
+                ← Zurück zur Raumübersicht
+            </button>
+
+            <div class="room-detail-card" id="room-detail-content">
+                <!-- Room details will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Room data
+        const roomData = {
+            0: [ // Erdgeschoss
+                {
+                    number: "E.01",
+                    type: "Empfang",
+                    icon: "🛎️",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "45 m²",
+                        capacity: "3 Arbeitsplätze",
+                        phone: "+49 123 456-100",
+                        equipment: ["Telefon", "Besucherterminal", "Drucker"],
+                        occupants: [
+                            { name: "Maria Schmidt", role: "Empfangsleiterin", avatar: "👩" },
+                            { name: "Thomas Müller", role: "Empfangsmitarbeiter", avatar: "👨" }
+                        ]
+                    }
+                },
+                {
+                    number: "E.02",
+                    type: "Meetingraum",
+                    icon: "🤝",
+                    status: "available",
+                    statusText: "Verfügbar",
+                    details: {
+                        name: "Raum Berlin",
+                        size: "35 m²",
+                        capacity: "12 Plätze",
+                        phone: "+49 123 456-102",
+                        equipment: ["Beamer", "Whiteboard", "Videokonferenz", "Flipchart"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "E.03",
+                    type: "Cafeteria",
+                    icon: "☕",
+                    status: "available",
+                    statusText: "Offen",
+                    details: {
+                        size: "80 m²",
+                        capacity: "40 Sitzplätze",
+                        equipment: ["Kaffeemaschine", "Mikrowelle", "Kühlschrank", "Wasserspender"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "E.04",
+                    type: "Serverraum",
+                    icon: "🖥️",
+                    status: "occupied",
+                    statusText: "Zugang beschränkt",
+                    details: {
+                        size: "25 m²",
+                        capacity: "Technischer Bereich",
+                        phone: "+49 123 456-999",
+                        equipment: ["Server-Racks", "USV", "Klimaanlage", "Zugangskontrolle"],
+                        occupants: []
+                    }
+                }
+            ],
+            1: [ // 1. OG
+                {
+                    number: "1.01",
+                    type: "Großraumbüro",
+                    icon: "💼",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        name: "Marketing Team",
+                        size: "120 m²",
+                        capacity: "16 Arbeitsplätze",
+                        phone: "+49 123 456-200",
+                        equipment: ["Drucker", "Scanner", "Kaffeemaschine"],
+                        occupants: [
+                            { name: "Lisa Weber", role: "Marketing Leiterin", avatar: "👩‍💼" },
+                            { name: "Max Bauer", role: "Content Manager", avatar: "👨" },
+                            { name: "Anna Klein", role: "Social Media", avatar: "👩" },
+                            { name: "Tim Fischer", role: "Grafik Designer", avatar: "👨‍🎨" }
+                        ]
+                    }
+                },
+                {
+                    number: "1.02",
+                    type: "Meetingraum",
+                    icon: "🤝",
+                    status: "meeting",
+                    statusText: "Meeting bis 15:00",
+                    details: {
+                        name: "Raum München",
+                        size: "28 m²",
+                        capacity: "8 Plätze",
+                        phone: "+49 123 456-201",
+                        equipment: ["TV-Display", "Videokonferenz", "Whiteboard"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "1.03",
+                    type: "Einzelbüro",
+                    icon: "🚪",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "18 m²",
+                        capacity: "1 Arbeitsplatz",
+                        phone: "+49 123 456-210",
+                        equipment: ["Stehschreibtisch", "Monitor"],
+                        occupants: [
+                            { name: "Dr. Stefan Hoffmann", role: "Abteilungsleiter Marketing", avatar: "👨‍💼" }
+                        ]
+                    }
+                },
+                {
+                    number: "1.04",
+                    type: "Druckraum",
+                    icon: "🖨️",
+                    status: "available",
+                    statusText: "Verfügbar",
+                    details: {
+                        size: "12 m²",
+                        capacity: "Technikraum",
+                        equipment: ["Großformatdrucker", "Kopierer", "Laminiergerät", "Bindemaschine"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "1.05",
+                    type: "Telefonbox",
+                    icon: "📞",
+                    status: "available",
+                    statusText: "Frei",
+                    details: {
+                        size: "4 m²",
+                        capacity: "1 Person",
+                        equipment: ["Schallisolierung", "Telefon", "Steckdose"],
+                        occupants: []
+                    }
+                }
+            ],
+            2: [ // 2. OG
+                {
+                    number: "2.01",
+                    type: "Großraumbüro",
+                    icon: "💼",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        name: "Entwicklung Team",
+                        size: "150 m²",
+                        capacity: "20 Arbeitsplätze",
+                        phone: "+49 123 456-300",
+                        equipment: ["Dual-Monitore", "Stehschreibtische", "Whiteboards"],
+                        occupants: [
+                            { name: "Michael Braun", role: "Tech Lead", avatar: "👨‍💻" },
+                            { name: "Sarah Koch", role: "Senior Developer", avatar: "👩‍💻" },
+                            { name: "Kevin Wagner", role: "Backend Developer", avatar: "👨‍💻" },
+                            { name: "Julia Schwarz", role: "Frontend Developer", avatar: "👩‍💻" }
+                        ]
+                    }
+                },
+                {
+                    number: "2.02",
+                    type: "Meetingraum",
+                    icon: "🤝",
+                    status: "available",
+                    statusText: "Verfügbar",
+                    details: {
+                        name: "Raum Hamburg",
+                        size: "40 m²",
+                        capacity: "14 Plätze",
+                        phone: "+49 123 456-301",
+                        equipment: ["Beamer", "Videokonferenz", "Whiteboard", "Flipchart"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "2.03",
+                    type: "Kreativraum",
+                    icon: "🎨",
+                    status: "available",
+                    statusText: "Verfügbar",
+                    details: {
+                        name: "Innovation Lab",
+                        size: "55 m²",
+                        capacity: "10 Personen",
+                        equipment: ["Whiteboards", "Post-its", "Bastelmaterial", "3D-Drucker"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "2.04",
+                    type: "Ruheraum",
+                    icon: "🧘",
+                    status: "available",
+                    statusText: "Verfügbar",
+                    details: {
+                        size: "20 m²",
+                        capacity: "4 Personen",
+                        equipment: ["Liegestühle", "Verdunkelung", "Entspannungsmusik"],
+                        occupants: []
+                    }
+                }
+            ],
+            3: [ // 3. OG
+                {
+                    number: "3.01",
+                    type: "Finanzabteilung",
+                    icon: "💰",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "90 m²",
+                        capacity: "10 Arbeitsplätze",
+                        phone: "+49 123 456-400",
+                        equipment: ["Aktenvernichter", "Safe", "Drucker"],
+                        occupants: [
+                            { name: "Christina Meier", role: "Finanzleiterin", avatar: "👩‍💼" },
+                            { name: "Robert Schulz", role: "Controller", avatar: "👨" },
+                            { name: "Petra Lange", role: "Buchhaltung", avatar: "👩" }
+                        ]
+                    }
+                },
+                {
+                    number: "3.02",
+                    type: "Meetingraum",
+                    icon: "🤝",
+                    status: "meeting",
+                    statusText: "Meeting bis 16:30",
+                    details: {
+                        name: "Raum Frankfurt",
+                        size: "32 m²",
+                        capacity: "10 Plätze",
+                        phone: "+49 123 456-401",
+                        equipment: ["TV-Display", "Videokonferenz", "Telefon"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "3.03",
+                    type: "HR Büro",
+                    icon: "👥",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "60 m²",
+                        capacity: "6 Arbeitsplätze",
+                        phone: "+49 123 456-410",
+                        equipment: ["Aktenschränke", "Drucker", "Besprechungsecke"],
+                        occupants: [
+                            { name: "Sabine Wolf", role: "HR Leiterin", avatar: "👩‍💼" },
+                            { name: "Martin Keller", role: "Recruiter", avatar: "👨" }
+                        ]
+                    }
+                },
+                {
+                    number: "3.04",
+                    type: "Archiv",
+                    icon: "📁",
+                    status: "available",
+                    statusText: "Zugänglich",
+                    details: {
+                        size: "40 m²",
+                        capacity: "Lagerraum",
+                        equipment: ["Regalsysteme", "Aktenschränke", "Klimakontrolle"],
+                        occupants: []
+                    }
+                }
+            ],
+            4: [ // 4. OG
+                {
+                    number: "4.01",
+                    type: "Geschäftsführung",
+                    icon: "👔",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "50 m²",
+                        capacity: "1 Arbeitsplatz + Besprechungsbereich",
+                        phone: "+49 123 456-500",
+                        equipment: ["Besprechungstisch", "Videokonferenz", "Mini-Küche"],
+                        occupants: [
+                            { name: "Dr. Heinrich Neumann", role: "Geschäftsführer (CEO)", avatar: "👨‍💼" }
+                        ]
+                    }
+                },
+                {
+                    number: "4.02",
+                    type: "Vorstandsbüro",
+                    icon: "👔",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "40 m²",
+                        capacity: "1 Arbeitsplatz",
+                        phone: "+49 123 456-501",
+                        equipment: ["Stehschreibtisch", "Videokonferenz"],
+                        occupants: [
+                            { name: "Claudia Richter", role: "Finanzvorstand (CFO)", avatar: "👩‍💼" }
+                        ]
+                    }
+                },
+                {
+                    number: "4.03",
+                    type: "Konferenzraum",
+                    icon: "🏛️",
+                    status: "available",
+                    statusText: "Verfügbar",
+                    details: {
+                        name: "Boardroom",
+                        size: "80 m²",
+                        capacity: "20 Plätze",
+                        phone: "+49 123 456-510",
+                        equipment: ["Großer TV-Display", "Videokonferenz", "Catering-Bereich", "Verdunkelung"],
+                        occupants: []
+                    }
+                },
+                {
+                    number: "4.04",
+                    type: "Sekretariat",
+                    icon: "📋",
+                    status: "occupied",
+                    statusText: "Besetzt",
+                    details: {
+                        size: "25 m²",
+                        capacity: "2 Arbeitsplätze",
+                        phone: "+49 123 456-505",
+                        equipment: ["Drucker", "Scanner", "Telefon-Zentrale"],
+                        occupants: [
+                            { name: "Andrea Hartmann", role: "Assistentin der Geschäftsführung", avatar: "👩" }
+                        ]
+                    }
+                },
+                {
+                    number: "4.05",
+                    type: "Dachterrasse",
+                    icon: "🌤️",
+                    status: "available",
+                    statusText: "Geöffnet",
+                    details: {
+                        size: "100 m²",
+                        capacity: "30 Personen",
+                        equipment: ["Sitzgruppen", "Sonnenschirme", "Pflanzenkübel"],
+                        occupants: []
+                    }
+                }
+            ]
+        };
+
+        let currentFloor = 0;
+        let currentRoom = null;
+
+        function showCampus() {
+            document.getElementById('campus-view').style.display = 'grid';
+            document.getElementById('building-view').style.display = 'none';
+            document.getElementById('room-detail').style.display = 'none';
+            
+            // Update breadcrumb
+            document.getElementById('sep1').classList.add('hidden');
+            document.getElementById('bread-building').classList.add('hidden');
+            document.getElementById('sep2').classList.add('hidden');
+            document.getElementById('bread-room').classList.add('hidden');
+        }
+
+        function showBuilding() {
+            document.getElementById('campus-view').style.display = 'none';
+            document.getElementById('building-view').style.display = 'block';
+            document.getElementById('room-detail').style.display = 'none';
+            
+            // Update breadcrumb
+            document.getElementById('sep1').classList.remove('hidden');
+            document.getElementById('bread-building').classList.remove('hidden');
+            document.getElementById('bread-building').textContent = '🏢 Hauptgebäude';
+            document.getElementById('sep2').classList.add('hidden');
+            document.getElementById('bread-room').classList.add('hidden');
+            
+            loadRooms(currentFloor);
+        }
+
+        function selectFloor(element, floorIndex) {
+            document.querySelectorAll('.floor-tab').forEach(tab => tab.classList.remove('active'));
+            element.classList.add('active');
+            currentFloor = floorIndex;
+            loadRooms(floorIndex);
+        }
+
+        function loadRooms(floorIndex) {
+            const container = document.getElementById('rooms-container');
+            const rooms = roomData[floorIndex];
+            
+            container.innerHTML = rooms.map((room, index) => `
+                <div class="room-card" onclick="showRoomDetail(${floorIndex}, ${index})">
+                    <div class="room-card-header">
+                        <span class="room-icon">${room.icon}</span>
+                        <span class="room-number">${room.number}</span>
+                    </div>
+                    <div class="room-type">${room.type}</div>
+                    <span class="room-status ${room.status}">${room.statusText}</span>
+                </div>
+            `).join('');
+        }
+
+        function showRoomDetail(floorIndex, roomIndex) {
+            const room = roomData[floorIndex][roomIndex];
+            currentRoom = room;
+            
+            document.getElementById('campus-view').style.display = 'none';
+            document.getElementById('building-view').style.display = 'none';
+            document.getElementById('room-detail').style.display = 'block';
+            
+            // Update breadcrumb
+            document.getElementById('sep2').classList.remove('hidden');
+            document.getElementById('bread-room').classList.remove('hidden');
+            document.getElementById('bread-room').textContent = `${room.icon} ${room.number} - ${room.type}`;
+            
+            const content = document.getElementById('room-detail-content');
+            const d = room.details;
+            
+            let occupantsHtml = '';
+            if (d.occupants && d.occupants.length > 0) {
+                occupantsHtml = `
+                    <div class="occupants-list">
+                        <h3>👥 Personen in diesem Raum</h3>
+                        ${d.occupants.map(o => `
+                            <div class="occupant">
+                                <div class="occupant-avatar">${o.avatar}</div>
+                                <div class="occupant-info">
+                                    <h4>${o.name}</h4>
+                                    <p>${o.role}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <div class="room-detail-header">
+                    <span class="room-detail-icon">${room.icon}</span>
+                    <div class="room-detail-title">
+                        <h2>${room.number} - ${room.type}</h2>
+                        <p>${d.name || room.type}</p>
+                    </div>
+                </div>
+                
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-item-label">Größe</div>
+                        <div class="detail-item-value">${d.size}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Kapazität</div>
+                        <div class="detail-item-value">${d.capacity}</div>
+                    </div>
+                    ${d.phone ? `
+                    <div class="detail-item">
+                        <div class="detail-item-label">Telefon</div>
+                        <div class="detail-item-value">${d.phone}</div>
+                    </div>
+                    ` : ''}
+                    <div class="detail-item">
+                        <div class="detail-item-label">Status</div>
+                        <div class="detail-item-value highlight">${room.statusText}</div>
+                    </div>
+                </div>
+                
+                <div class="detail-item" style="margin-top: 20px;">
+                    <div class="detail-item-label">Ausstattung</div>
+                    <div class="equipment-list">
+                        ${d.equipment.map(e => `<span class="equipment-tag">${e}</span>`).join('')}
+                    </div>
+                </div>
+                
+                ${occupantsHtml}
+            `;
+        }
+
+        // Initialize with rooms loaded
+        loadRooms(0);
+    </script>
+</body>
+</html>

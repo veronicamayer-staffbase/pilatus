@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neue Mitarbeiter</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+  }
+
+  .widget {
+    width: 100%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .badge-new {
+    display: inline-block;
+    background: #d1fae5;
+    color: #065f46;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  /* ── View-all link ── */
+  .view-all-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4b8ef1;
+    cursor: pointer;
+    padding: 4px 0 20px;
+    text-decoration: none;
+  }
+
+  .view-all-link svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ── List items ── */
+  .list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .list-group-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    padding: 10px 0 6px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .list-item {
+    background: #fff;
+    border-radius: 14px;
+    border: 1.5px solid #e5e7eb;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .list-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .list-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .list-avatar .initials {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .list-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .list-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 2px;
+  }
+
+  .list-meta {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .list-meta-sep {
+    color: #d1d5db;
+    font-size: 10px;
+  }
+
+  .list-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .list-date {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 400;
+  }
+
+  /* ── Avatar color palette ── */
+  .av-1 { background: #6b7a8e; }
+  .av-2 { background: #5b7fa6; }
+  .av-3 { background: #7a6b8e; }
+  .av-4 { background: #6b8e7a; }
+  .av-5 { background: #8e7a6b; }
+  .av-6 { background: #6b8e8e; }
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <!-- List Section -->
+  <div class="list-section">
+
+    <div class="list-group-label">3. Feb – 10. Feb</div>
+
+    <div class="list-item">
+      <div class="list-avatar av-3">
+        <img
+          src="https://i.pravatar.cc/100?img=9"
+          alt="Laura Becker"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="initials" style="display:none">LB</div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">Laura Becker</div>
+        <div class="list-meta">Human Resources</div>
+      </div>
+      <div class="list-right">
+        <span class="list-date">Feb 03</span>
+        <span class="badge-new">Neu</span>
+      </div>
+    </div>
+
+    <div class="list-item">
+      <div class="list-avatar av-4">
+        <img
+          src="https://i.pravatar.cc/100?img=15"
+          alt="Tobias Wolf"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="initials" style="display:none">TW</div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">Tobias Wolf</div>
+        <div class="list-meta">Finance</div>
+      </div>
+      <div class="list-right">
+        <span class="list-date">Feb 05</span>
+        <span class="badge-new">Neu</span>
+      </div>
+    </div>
+
+    <div class="list-group-label">11. Feb – 18. Feb</div>
+
+    <div class="list-item">
+      <div class="list-avatar av-5">
+        <img
+          src="https://i.pravatar.cc/100?img=23"
+          alt="Emma Hartmann"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="initials" style="display:none">EH</div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">Emma Hartmann</div>
+        <div class="list-meta">Product Design</div>
+      </div>
+      <div class="list-right">
+        <span class="list-date">Feb 12</span>
+        <span class="badge-new">Neu</span>
+      </div>
+    </div>
+
+    <div class="list-item">
+      <div class="list-avatar av-6">
+        <img
+          src="https://i.pravatar.cc/100?img=33"
+          alt="Felix Wagner"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="initials" style="display:none">FW</div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">Felix Wagner</div>
+        <div class="list-meta">IT Operations</div>
+      </div>
+      <div class="list-right">
+        <span class="list-date">Feb 17</span>
+        <span class="badge-new">Neu</span>
+      </div>
+    </div>
+
+    <div class="list-group-label">19. Feb – 28. Feb</div>
+
+    <div class="list-item">
+      <div class="list-avatar av-1">
+        <img
+          src="https://i.pravatar.cc/100?img=44"
+          alt="Mia Zimmermann"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="initials" style="display:none">MZ</div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">Mia Zimmermann</div>
+        <div class="list-meta">Supply Chain</div>
+      </div>
+      <div class="list-right">
+        <span class="list-date">Feb 24</span>
+        <span class="badge-new">Neu</span>
+      </div>
+    </div>
+
+    <div class="list-item">
+      <div class="list-avatar av-2">
+        <img
+          src="https://i.pravatar.cc/100?img=52"
+          alt="Lukas Richter"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="initials" style="display:none">LR</div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">Lukas Richter</div>
+        <div class="list-meta">Sales</div>
+      </div>
+      <div class="list-right">
+        <span class="list-date">Feb 28</span>
+        <span class="badge-new">Neu</span>
+      </div>
+    </div>
+
+  <!-- View all link -->
+  <a class="view-all-link" href="#">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 8h12M8 2l6 6-6 6" stroke="#4b8ef1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Alle Mitarbeiter anzeigen
+  </a>
+
+</div>
+</body>
+</html>

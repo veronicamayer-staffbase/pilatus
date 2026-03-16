@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auslieferungen Widget</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .widget {
+    width: 360px;
+    height: 200px;
+    background: #2b3036;
+    border-radius: 18px;
+    padding: 22px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* subtle radial glow */
+  .widget::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(74,133,210,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── Top row ── */
+  .top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #9ca3b0;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  .year-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6ea8e8;
+    background: rgba(74,133,210,0.15);
+    border: 1px solid rgba(74,133,210,0.25);
+    border-radius: 20px;
+    padding: 3px 10px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Middle row ── */
+  .middle-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .count-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .count-main {
+    font-size: 58px;
+    font-weight: 700;
+    line-height: 1;
+    color: #ffffff;
+    letter-spacing: -2px;
+  }
+
+  .count-sub {
+    font-size: 12px;
+    color: #9ca3b0;
+    font-weight: 400;
+  }
+
+  .count-sub strong {
+    color: #c9d1db;
+    font-weight: 600;
+  }
+
+  /* Pilatus plane icon */
+  .plane-icon {
+    flex-shrink: 0;
+    opacity: 0.22;
+    margin-bottom: 4px;
+  }
+
+  /* ── Bottom row – progress ── */
+  .bottom-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: #9ca3b0;
+    font-weight: 400;
+  }
+
+  .progress-pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6ea8e8;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 37%;
+    background: linear-gradient(90deg, #4a85d2 0%, #6ea8e8 100%);
+    border-radius: 99px;
+    position: relative;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* animated shimmer on progress bar */
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    animation: shimmer 2.4s infinite 1s;
+  }
+
+  @keyframes shimmer {
+    0%   { left: -60%; }
+    100% { left: 140%; }
+  }
+
+  /* count-up animation */
+  .count-main {
+    animation: fadeUp 0.6s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+
+  <!-- Top row -->
+  <div class="top-row">
+    <span class="label">Ausgelieferte Flugzeuge</span>
+    <span class="year-badge">2026</span>
+  </div>
+
+  <!-- Middle row: big number + icon -->
+  <div class="middle-row">
+    <div class="count-block">
+      <div class="count-main" id="counter">0</div>
+      <div class="count-sub">von <strong>100</strong> Jahresziel</div>
+    </div>
+
+    <!-- Pilatus aircraft icon (SVG recreation of the provided icon) -->
+    <svg class="plane-icon" width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Fuselage -->
+      <rect x="44" y="8" width="8" height="80" rx="4" fill="white"/>
+      <!-- Main wings -->
+      <path d="M48 38 L8 68 L16 72 L48 50 L80 72 L88 68 Z" fill="white"/>
+      <!-- Tail horizontal stabilizer -->
+      <path d="M48 76 L28 90 L34 92 L48 82 L62 92 L68 90 Z" fill="white"/>
+    </svg>
+  </div>
+
+  <!-- Bottom row: progress bar -->
+  <div class="bottom-row">
+    <div class="progress-meta">
+      <span class="progress-label">Jahresfortschritt</span>
+      <span class="progress-pct" id="pct">37 %</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="bar" style="width:0%"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Data
+  const delivered = 37;
+  const target    = 100;
+  const pct       = Math.round((delivered / target) * 100);
+
+  // Count-up animation
+  const counterEl = document.getElementById('counter');
+  const barEl     = document.getElementById('bar');
+  const pctEl     = document.getElementById('pct');
+  let start = null;
+  const duration = 1200;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function step(ts) {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const eased    = easeOut(progress);
+    counterEl.textContent = Math.round(eased * delivered);
+    barEl.style.width     = (eased * pct) + '%';
+    if (progress < 1) requestAnimationFrame(step);
+    else {
+      counterEl.textContent = delivered;
+      barEl.style.width     = pct + '%';
+    }
+  }
+
+  // Start when visible
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      requestAnimationFrame(step);
+      observer.disconnect();
+    }
+  }, { threshold: 0.4 });
+
+  observer.observe(document.querySelector('.widget'));
+</script>
+
+</body>
+</html>
